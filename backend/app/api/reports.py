@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
 
 from app.schemas.report import GenerateReportRequest, GenerateReportResponse, ReportStatusResponse
@@ -11,10 +11,11 @@ from app.services.report_service import ReportService
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 
-def get_report_service() -> ReportService:
-    from app.main import report_service
-
-    return report_service
+def get_report_service(request: Request) -> ReportService:
+    service = getattr(request.app.state, "report_service", None)
+    if not isinstance(service, ReportService):
+        raise HTTPException(status_code=500, detail="Report service is not configured")
+    return service
 
 
 @router.post("/generate", response_model=GenerateReportResponse)

@@ -100,6 +100,7 @@ def create_app() -> FastAPI:
     app.include_router(routes_router, prefix="/api")
     app.include_router(api_router, prefix=settings.api_v1_prefix)
     app.include_router(reports_router)
+    app.state.report_service = report_service
 
     @app.get("/health")
     def health() -> dict[str, str]:
@@ -108,4 +109,5 @@ def create_app() -> FastAPI:
     return app
 
 
+# Final ASGI export used by tests and runtime.
 app = create_app()
