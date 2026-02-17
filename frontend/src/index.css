@@ -1,0 +1,13 @@
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+a {
+  color: #1565c0;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
