@@ -34,3 +34,4 @@ class InMemoryRepository(Generic[TCreate, TModel]):
 
     def delete(self, entity_id: int) -> bool:
         return self._store.pop(entity_id, None) is not None
+"""Repository layer placeholders and shared contracts."""
