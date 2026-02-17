@@ -1,18 +1,28 @@
 from __future__ import annotations
 
 import logging
+import uuid
+from contextvars import ContextVar
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from app.api.reports import router as reports_router
+from app.api.routes import router as routes_router
+from app.api.v1.router import api_router
+from app.core.logging import configure_logging
+from app.core.settings import get_settings
+from app.schemas.common import ProblemDetails
 from app.services.connector_service import ConnectorConfig, ConnectorService, MockConnector, RetryPolicy
 from app.services.report_service import ReportService
 from app.storage.report_store import ReportStore
 
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="Reporting Backend")
+trace_id_ctx: ContextVar[str | None] = ContextVar("trace_id", default=None)
+settings = get_settings()
 
 connector_config = ConnectorConfig(
     endpoint="https://mock.local/api/reports",
@@ -28,27 +38,6 @@ report_service = ReportService(
     artifacts_dir=Path("backend/artifacts"),
 )
 
-app.include_router(reports_router)
-
-
-@app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
-import uuid
-from contextvars import ContextVar
-
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-
-from app.api.v1.router import api_router
-from app.core.logging import configure_logging
-from app.core.settings import get_settings
-from app.schemas.common import ProblemDetails
-
-trace_id_ctx: ContextVar[str | None] = ContextVar("trace_id", default=None)
-settings = get_settings()
-
 
 def create_app() -> FastAPI:
     configure_logging()
@@ -60,6 +49,7 @@ def create_app() -> FastAPI:
             {"name": "projects", "description": "Project CRUD"},
             {"name": "calculate", "description": "Engineering calculations"},
             {"name": "predict", "description": "Lifetime prediction"},
+            {"name": "reports", "description": "Report generation and access"},
         ],
     )
 
@@ -107,7 +97,9 @@ def create_app() -> FastAPI:
         )
         return JSONResponse(status_code=500, content=body.model_dump())
 
+    app.include_router(routes_router, prefix="/api")
     app.include_router(api_router, prefix=settings.api_v1_prefix)
+    app.include_router(reports_router)
 
     @app.get("/health")
     def health() -> dict[str, str]:
@@ -117,9 +109,3 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-from fastapi import FastAPI
-
-from app.api.routes import router
-
-app = FastAPI(title="Bot Backend")
-app.include_router(router, prefix="/api")
