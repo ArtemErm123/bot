@@ -1,54 +1,33 @@
-# Bot Monorepo Scaffold
+# Project setup
 
-Базовая структура монорепозитория для backend + frontend + infrastructure + docs.
-
-## Структура
-
-- `backend/` — FastAPI + SQLAlchemy + Alembic + tests.
-- `frontend/` — React + TypeScript + Vite + UI kit + charts.
-- `infra/` — docker-compose и шаблоны переменных окружения.
-- `docs/` — архитектура, ERD, API-контракты.
-
-## Модули A–H
-
-- **A — API Gateway Layer**: HTTP-эндпоинты и роутинг (`backend/app/api`).
-- **B — Application Services**: orchestration use-case логики (`backend/app/services`).
-- **C — Domain Core**: доменные сущности/правила (`backend/app/domain`).
-- **D — Repository Layer**: доступ к данным (`backend/app/repositories`).
-- **E — Data Models**: SQLAlchemy ORM (`backend/app/models`).
-- **F — Schemas/Contracts**: Pydantic DTO (`backend/app/schemas`).
-- **G — Frontend UI**: клиентское приложение и визуализации (`frontend/src`).
-- **H — Infrastructure & Docs**: compose/env и документация (`infra`, `docs`).
-
-## Команды запуска
-
-### Backend (локально)
+## Run with Docker Compose
 
 ```bash
-cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+cp .env.example .env
+docker compose up -d --build
 ```
 
-### Frontend (локально)
+## Alembic migrations
 
 ```bash
-cd frontend
-npm install
-npm run dev
+# create migration
+alembic revision --autogenerate -m "init"
+
+# apply migrations
+alembic upgrade head
+
+# rollback one migration
+alembic downgrade -1
 ```
 
-### В Docker Compose
+## Run tests
 
 ```bash
-cd infra
-docker compose up --build
+pytest -q
 ```
 
-## Проверка backend-тестов
+## Local backend start (optional)
 
 ```bash
-cd backend
-pytest
+uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
