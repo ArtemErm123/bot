@@ -102,10 +102,6 @@ def create_app() -> FastAPI:
     app.include_router(reports_router)
     app.state.report_service = report_service
 
-    @app.get("/health")
-    def health() -> dict[str, str]:
-        return {"status": "ok"}
-
     return app
 
 
